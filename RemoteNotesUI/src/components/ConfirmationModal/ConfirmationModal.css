@@ -1,0 +1,14 @@
+.fade.confirm.modal.show {
+  z-index: 1060 !important;
+}
+
+.shadow {
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1055;
+  background-color: #000000;
+  opacity: 0.5;
+}

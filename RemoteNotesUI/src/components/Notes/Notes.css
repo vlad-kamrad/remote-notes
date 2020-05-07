@@ -1,0 +1,11 @@
+.body {
+  padding: 13px;
+}
+
+.notes {
+  padding: 13px;
+}
+
+.ant-list-item-meta .title {
+  margin-bottom: 0 !important;
+}
