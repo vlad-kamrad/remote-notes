@@ -43,6 +43,9 @@ const LoginForm = () => {
       case 400:
         setErrorMessage(MESSAGES.LOGIN_VALID_PARAMS);
         break;
+      case 403:
+        setErrorMessage(MESSAGES.LOCKED_USER);
+        break;
       case 404:
         setErrorMessage(MESSAGES.WRONG_USER_CREDS);
         break;

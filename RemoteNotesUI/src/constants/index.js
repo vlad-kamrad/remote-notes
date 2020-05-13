@@ -5,6 +5,8 @@ export const BASE_URL = 'https://localhost:44318/api';
 
 export const initialNotesState = {
   notes: [],
+  users: [],
+  roles: [],
   notesLoading: false,
   currentUser: {
     username: null,

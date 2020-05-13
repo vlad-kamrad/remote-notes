@@ -3,6 +3,7 @@ import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import Notes from './components/Notes';
 import AdminPanel from './components/AdminPanel';
+import Settings from './components/Settings';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import { initialNotesState } from '../src/constants';
 import NotesProvider from './contexts/NotesContext/NotesProvider';
@@ -22,6 +23,9 @@ const App = () => {
           </Route>
           <Route path='/admin-panel'>
             <AdminPanel />
+          </Route>
+          <Route path='/account-settings'>
+            <Settings />
           </Route>
           <Route path='/'>
             <Notes />

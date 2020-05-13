@@ -53,6 +53,9 @@ namespace RN.WebApi.Common
                 case UnauthorizedExceptions _:
                     code = HttpStatusCode.Unauthorized;
                     break;
+                case LockedRequestException _:
+                    code = HttpStatusCode.Forbidden;
+                    break;
             }
 
             context.Response.ContentType = "application/json";

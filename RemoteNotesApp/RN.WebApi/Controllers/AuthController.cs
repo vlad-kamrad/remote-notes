@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using RN.Application.UseCases.User.Commands.CreateUser;
 using RN.Application.UseCases.User.Commands.LoginUser;
 using RN.Application.UseCases.User.Commands.UpdateAccessToken;

@@ -26,7 +26,8 @@ const CreateNoteModal = ({ show, onHide }) => {
   const showCreated = () => {
     notification['success']({
       message: MESSAGES.SUCCESS,
-      description: MESSAGES.SUCCESS_CREATED_TEXT
+      description: MESSAGES.SUCCESS_CREATED_TEXT,
+      placement: 'bottomLeft'
     });
   };
 

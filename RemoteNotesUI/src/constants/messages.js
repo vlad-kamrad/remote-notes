@@ -12,6 +12,8 @@ const SUCCESS = 'Success';
 const SUCCESS_MODIFIED_TEXT = 'Note modified successfully';
 const SUCCESS_CREATED_TEXT = 'Note created successfully';
 const SUCCESS_DELETED_TEXT = 'Note deleted successfully';
+const LOCKED_USER = 'You are locked';
+const FAILED = 'Failed'
 
 export default {
   EMPTY_FIRLDS,
@@ -24,5 +26,7 @@ export default {
   SUCCESS,
   SUCCESS_MODIFIED_TEXT,
   SUCCESS_CREATED_TEXT,
-  SUCCESS_DELETED_TEXT
+  SUCCESS_DELETED_TEXT,
+  LOCKED_USER,
+  FAILED
 };

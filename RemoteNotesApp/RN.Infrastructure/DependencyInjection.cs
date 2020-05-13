@@ -5,10 +5,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using RN.Application.Common.Interfaces;
-using RN.Infrastructure.Identity;
+using RN.Infrastructure.Persistence;
 using RN.Infrastructure.Services;
 using System;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -24,52 +23,23 @@ namespace RN.Infrastructure
         {
             services.AddTransient<IDateTime, DateTimeService>();
 
-            // TODO: Change this
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=RN.DB;Trusted_Connection=True;MultipleActiveResultSets=true"
-                , b => b.MigrationsAssembly("RN.Infrastructure"))
-              //b => b.MigrationsAssembly(typeof(IApplicationDbContext).Assembly.FullName))
-              );
+            services.Configure<TokenSettings>(configuration.GetSection("TokenSettings"));
 
-            //services.AddScoped(typeof(IApplicationDbContext), typeof(ApplicationDbContext));
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"))
+            );
+            // services.AddDbContext<ApplicationDbContext>(opt => 
+            //     opt.UseMongoDb(configuration.GetConnectionString("MongoDbConnection"))
+            // );
+            // services.AddDbContext<ApplicationDbContext>(opt => 
+            //     opt.UseMySql(configuration.GetConnectionString("MySqlConnection"))
+            // );
             services.AddScoped<IApplicationDbContext>(provider => provider.GetService<ApplicationDbContext>());
 
-            /*     services.AddEntityFrameworkSqlServer()
-                     .AddDbContext<ApplicationDbContext>(pr =>
-                     pr.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));*/
-            //(localdb)\MSSQLLocalDB
-            /* services.AddEntityFrameworkSqlServer().AddDbContext<IApplicationDbContext, ApplicationDbContext>((provider, options) =>
-             {
-                 options
-                 .UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=RN.DB;Trusted_Connection=True;MultipleActiveResultSets=true")
-                 ;//.UseInternalServiceProvider(provider)
-                 //.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-             });*/
-
-
-            //services.AddScoped<IApplicationDbContext>(provider => provider.GetService(typeof(ApplicationDbContext)));
-            //services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
-            //services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
-
-
             services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
-           // services.AddScoped<IIdentityService, IdentityService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IAuthService, AuthService>();
 
-            // Disable default props ASP.Identity
-            /*services.AddDefaultIdentity<ApplicationUser>(x =>
-            {
-                // TODO: Use separate middleware
-                x.Password.RequiredLength = 5;
-                x.Password.RequireNonAlphanumeric = false;
-                x.Password.RequireLowercase = false;
-                x.Password.RequireUppercase = false;
-                x.Password.RequireDigit = false;
-            }).AddRoles<ApplicationRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
-
-            services.AddIdentityServer().AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
-            */
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -90,12 +60,17 @@ namespace RN.Infrastructure
                         }
                     };
 
+                    var tokenSettings = configuration.GetSection("TokenSettings");
+                    var isk = tokenSettings.GetSection("IssuerSigningKey").Value;
+                    var vi = tokenSettings.GetSection("Issuer").Value;
+                    var va = tokenSettings.GetSection("Audience").Value;
+ 
                     options.RequireHttpsMetadata = false;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("keyaisjdoasijdioasjdoiasjdoisajd")),
-                        ValidIssuer = "123",
-                        ValidAudience = "123",
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(isk)),
+                        ValidIssuer = vi,
+                        ValidAudience = va,
                         ValidateAudience = true,
                         ValidateIssuer = true,
                         ValidateLifetime = true,

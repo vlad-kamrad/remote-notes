@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RN.Domain.Entities
 {
-    public class User
+    public class User : AuditableEntity
     {
         public User()
         {

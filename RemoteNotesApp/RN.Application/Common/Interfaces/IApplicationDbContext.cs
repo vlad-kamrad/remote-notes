@@ -17,5 +17,6 @@ namespace RN.Application.Common.Interfaces
         DbSet<RefreshToken> RefreshTokens { get; set; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+        void SetModifiedState(object entity);
     }
 }

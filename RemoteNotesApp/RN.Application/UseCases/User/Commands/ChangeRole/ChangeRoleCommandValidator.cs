@@ -1,4 +1,4 @@
-﻿/*using FluentValidation;
+﻿using FluentValidation;
 
 namespace RN.Application.UseCases.User.Commands.ChangeRole
 {
@@ -14,4 +14,3 @@ namespace RN.Application.UseCases.User.Commands.ChangeRole
         }
     }
 }
-*/

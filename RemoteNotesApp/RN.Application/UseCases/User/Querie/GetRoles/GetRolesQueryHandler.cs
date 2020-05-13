@@ -8,23 +8,23 @@ using RN.Domain;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RN.Application.UseCases.User.Querie.GetUsers
+namespace RN.Application.UseCases.User.Querie.GetRoles
 {
-    public class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, UsersVm>
+    public class GetRolesQueryHandler : IRequestHandler<GetRolesQuery, RolesVm>
     {
-        private readonly IApplicationDbContext context;
         private readonly ICurrentUserService currentUser;
         private readonly IIdentityService identityService;
+        private readonly IApplicationDbContext context;
         private readonly IMapper mapper;
-        public GetUsersQueryHandler(IApplicationDbContext context, ICurrentUserService currentUser, IIdentityService identityService, IMapper mapper)
+        public GetRolesQueryHandler(IApplicationDbContext context, IMapper mapper, IIdentityService identityService, ICurrentUserService currentUser)
         {
-            this.context = context;
-            this.currentUser = currentUser;
             this.identityService = identityService;
+            this.context = context;
             this.mapper = mapper;
+            this.currentUser = currentUser;
         }
 
-        public async Task<UsersVm> Handle(GetUsersQuery request, CancellationToken cancellationToken)
+        public async Task<RolesVm> Handle(GetRolesQuery request, CancellationToken cancellationToken)
         {
             var currentUserId = currentUser.UserId;
             if (!await identityService.CheckRole(currentUserId, Roles.Admin))
@@ -32,12 +32,11 @@ namespace RN.Application.UseCases.User.Querie.GetUsers
                 throw new BadRequestException("You role is not Administrator");
             }
 
-            var users = await context.Users
-                .ProjectTo<UserDto>(mapper.ConfigurationProvider)
-                //.OrderBy(x => x.Email)
+            var roles = await context.Roles
+                .ProjectTo<RoleDto>(mapper.ConfigurationProvider)
                 .ToListAsync();
 
-            return new UsersVm { Users = users };
+            return new RolesVm() { Roles = roles };
         }
     }
 }

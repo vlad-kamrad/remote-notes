@@ -1,8 +1,10 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using RN.Application.Common.Exceptions;
 using RN.Application.Common.Interfaces;
 using RN.Domain.ValueObjects;
+using RN.Infrastructure.Persistence;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -17,10 +19,12 @@ namespace RN.Infrastructure.Services
     {
         private readonly IIdentityService identityService;
         private readonly ITokenService tokenService;
-        public AuthService(IIdentityService identityService, ITokenService tokenService)
+        private readonly IOptions<TokenSettings> configurations;
+        public AuthService(IIdentityService identityService, ITokenService tokenService, IOptions<TokenSettings> configurations)
         {
             this.identityService = identityService;
             this.tokenService = tokenService;
+            this.configurations = configurations;
         }
 
         public async Task<string> GenerateAccessToken(string userName, string password)
@@ -39,13 +43,12 @@ namespace RN.Infrastructure.Services
             var userId = await identityService.GetUserIdAsync(userName);
             var token = await tokenService.FindRefreshTokenAsync(refreshToken, userId);
 
-            if (token == null) 
+            if (token == null)
                 throw new BadRequestException();
 
             if (token.ExpiresUtc < DateTime.UtcNow.ToUniversalTime())
                 throw new UnauthorizedExceptions();
 
-            //var userName = await identityService.GetUserNameAsync(userId);
             return await CombinateResult(userName, userId);
         }
 
@@ -55,14 +58,10 @@ namespace RN.Infrastructure.Services
             return new SecurityTokenDescriptor
             {
                 Subject = await CreateClaimsIdentity(userId),
-                /*new ClaimsIdentity(new Claim[] {
-                        new Claim(ClaimTypes.NameIdentifier, userId),
-                    //    new Claim(ClaimTypes.Role, "user")
-                }),*/
-                Audience = "123",
-                Issuer = "123",
-                Expires = DateTime.UtcNow.Add(TimeSpan.FromMinutes(60)),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes("keyaisjdoasijdioasjdoiasjdoisajd")), SecurityAlgorithms.HmacSha256)
+                Audience = configurations.Value.Audience,
+                Issuer = configurations.Value.Issuer,
+                Expires = DateTime.UtcNow.Add(TimeSpan.FromMinutes(configurations.Value.LifeTimeAccess)),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes(configurations.Value.IssuerSigningKey)), SecurityAlgorithms.HmacSha256)
             };
         }
 
@@ -70,10 +69,10 @@ namespace RN.Infrastructure.Services
         {
             var claimsRoles = await identityService.GetUserRoles(userId);
 
-                var a = claimsRoles.Select(x => new Claim(ClaimTypes.Role, x.Name));
+            var a = claimsRoles.Select(x => new Claim(ClaimTypes.Role, x.Name));
 
-                var claims = new List<Claim>() { new Claim(ClaimTypes.NameIdentifier, userId) };
-                claims.AddRange(a);
+            var claims = new List<Claim>() { new Claim(ClaimTypes.NameIdentifier, userId) };
+            claims.AddRange(a);
 
             //return new ClaimsIdentity(claims);
             return new ClaimsIdentity(claims);
@@ -95,7 +94,7 @@ namespace RN.Infrastructure.Services
                 UserId = userId,
                 Token = Guid.NewGuid().ToString(), // TODO: Use special method for creating tokens
                 IssuedUtc = DateTime.UtcNow,
-                ExpiresUtc = DateTime.UtcNow.AddMinutes(60)
+                ExpiresUtc = DateTime.UtcNow.AddMinutes(configurations.Value.LifeTimeRefresh)
             };
 
             await tokenService.AddRefreshTokenAsync(newRefreshToken);
@@ -115,8 +114,8 @@ namespace RN.Infrastructure.Services
             {
                 AccessToken = tokenHandler.WriteToken(token),
                 RefreshToken = newRefreshToken.Token,
-                TokenExpiration = DateTime.UtcNow.AddSeconds(1440),
-                UserName = userName, 
+                TokenExpiration = token.ValidTo,
+                UserName = userName,
                 Roles = roles
             });
         }

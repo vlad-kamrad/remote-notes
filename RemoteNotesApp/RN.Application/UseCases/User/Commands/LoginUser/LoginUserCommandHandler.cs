@@ -22,6 +22,12 @@ namespace RN.Application.UseCases.User.Commands.LoginUser
         {
             var userId = await identityService.GetUserIdAsync(request.Name);
 
+            var userRoles = await identityService.GetUserRoles(userId);
+            if (userRoles.Count == 0)
+            {
+                throw new LockedRequestException("You are locked");
+            }
+
             if (await identityService.CheckPassword(userId, request.Password))
             {
                 string response = await authService.GenerateAccessToken(request.Name, request.Password);

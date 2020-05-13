@@ -1,4 +1,4 @@
-﻿/*using MediatR;
+﻿using MediatR;
 using RN.Application.Common.Exceptions;
 using RN.Application.Common.Interfaces;
 using RN.Domain;
@@ -6,7 +6,6 @@ using RN.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,13 +23,18 @@ namespace RN.Application.UseCases.User.Commands.ChangeRole
 
         public async Task<List<Role>> Handle(ChangeRoleCommand request, CancellationToken cancellationToken)
         {
-            var isAdmin = currentUser.Roles.Select(x => x.Name).Contains(Roles.Admin);
-            if (!isAdmin) throw new BadRequestException();   // TODO: Change to other excep 
+            var currentUserId = currentUser.UserId;
+            if (!await identityService.CheckRole(currentUserId, Roles.Admin))
+            {
+                throw new BadRequestException("You role is not Administrator");
+            }
 
             var user = await identityService.FindByIdAsync(request.UserId);
-            if (user == null) throw new NotFoundException("User", request.UserId);
+            if (user == null)
+                throw new NotFoundException("User", request.UserId);
 
-            var userRoles = identityService.GetUserRoles(request.UserId).Select(x => x.Name);
+            var _ = await identityService.GetUserRoles(request.UserId);
+            var userRoles = _.Select(x => x.Name);
             var desiredRoles = request.DesiredRoles;
 
             var toRemove = userRoles.Where(x => !desiredRoles.Contains(x));
@@ -39,8 +43,7 @@ namespace RN.Application.UseCases.User.Commands.ChangeRole
             foreach (var role in toRemove) await identityService.RemoveRole(user.Id, role);
             foreach (var role in toAdd) await identityService.AddRole(user.Id, role);
 
-            return null;
+            return await identityService.GetUserRoles(request.UserId);
         }
     }
 }
-*/

@@ -3,5 +3,9 @@ export default {
   login: '/auth/token',
   refresh: '/auth/refresh',
   authTest: '/auth/protected',
-  notes: '/notes'
+  notes: '/notes',
+  users: '/users',
+  roles: '/users/roles',
+  changeRoles: '/users/change-roles',
+  getUserInfo: '/users/information'
 };

@@ -30,6 +30,7 @@ namespace RN.Infrastructure.Identity
         {
             user.Password = passwordHasher.EncodePassword(user.Password);
             user.Id = Guid.NewGuid().ToString();
+            user.Created = DateTime.Now;
 
             await context.Users.AddAsync(user);
 
@@ -42,6 +43,28 @@ namespace RN.Infrastructure.Identity
                 Role = defaultRole
             });
 
+            await context.SaveChangesAsync(new CancellationToken());
+
+            return true;
+        }
+
+        public async Task<bool> UpdateUserAsync(User updatedUser)
+        {
+            var user = await context.Users.SingleOrDefaultAsync(x => x.Id == updatedUser.Id);
+            if (user == null) return false;
+
+            var checkName = await context.Users.SingleOrDefaultAsync(x => x.Name == updatedUser.Name);
+            if (checkName != null) return false;
+
+            if (updatedUser.Name != null) user.Name = updatedUser.Name;
+            if (updatedUser.Surname != null) user.Surname = updatedUser.Surname;
+            if (updatedUser.Email != null) user.Email = updatedUser.Email;
+            user.LastModified = DateTime.Now;
+            if (updatedUser.Password != null) {
+                user.Password = passwordHasher.EncodePassword(updatedUser.Password);
+            }
+
+            context.SetModifiedState(user);
             await context.SaveChangesAsync(new CancellationToken());
 
             return true;
@@ -117,7 +140,7 @@ namespace RN.Infrastructure.Identity
 
         public async Task<bool> CheckRole(string userId, string roleName)
         {
-            var roles = await GetUserRoles(userId); 
+            var roles = await GetUserRoles(userId);
             return roles.Select(x => x.Name).Contains(roleName);
         }
 

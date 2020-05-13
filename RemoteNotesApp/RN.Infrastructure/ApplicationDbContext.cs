@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.Extensions.Options;
 using RN.Application.Common.Interfaces;
 using RN.Domain.Common;
 using RN.Domain.Entities;
@@ -12,8 +11,6 @@ using System.Threading.Tasks;
 
 namespace RN.Infrastructure
 {
-    //
-    //ApiAuthorizationDbContext<ApplicationUser>
     public class ApplicationDbContext : DbContext, IApplicationDbContext
     {
         public DbSet<Note> Notes { get; set; }
@@ -26,9 +23,7 @@ namespace RN.Infrastructure
         private readonly IDateTime dateTimeService;
         private readonly IPasswordHasher passwordHasher;
 
-      //  public ApplicationDbContext(DbContextOptions options) : base(options) { }
-
-        public ApplicationDbContext( // : base(options, operationalStoreOptions)
+        public ApplicationDbContext(
             DbContextOptions<ApplicationDbContext> options,
             ICurrentUserService currentUserService,
             IDateTime dateTimeService,
@@ -60,10 +55,16 @@ namespace RN.Infrastructure
             return base.SaveChangesAsync(cancellationToken);
         }
 
+        public void SetModifiedState(object entity)
+        {
+            Entry(entity).State = EntityState.Modified;
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             // TODO: Create correct connection string => configuration.GetConnectionString("DefaultConnection")
-            options.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=RN.DB;Trusted_Connection=True;MultipleActiveResultSets=true");
+            // options.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=RN.DB;Trusted_Connection=True;MultipleActiveResultSets=true");
+            // options.UseMySql("Server=localhost;Database=RN.DB;User=root;Password=password;");
         }
 
         protected override void OnModelCreating(ModelBuilder builder)

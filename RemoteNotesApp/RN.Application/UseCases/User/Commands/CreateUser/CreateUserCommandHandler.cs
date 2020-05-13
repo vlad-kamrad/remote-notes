@@ -20,7 +20,8 @@ namespace RN.Application.UseCases.User.Commands.CreateUser
 
         public async Task<string> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
-            var success = await identityService.CreateUserAsync(new Domain.Entities.User { 
+            var success = await identityService.CreateUserAsync(new Domain.Entities.User
+            {
                 Name = request.Name,
                 Surname = request.Surname,
                 Email = request.Email,
