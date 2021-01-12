@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,15 +10,17 @@ using RN.Application.Common.Interfaces;
 using RN.Infrastructure;
 using RN.Infrastructure.Identity;
 using RN.WebApi.Common;
+using RN.WebApi.Presenters;
 using RN.WebApi.Services;
 
 namespace RemoteNotes
 {
     public class Startup
     {
+        private readonly string allowOrigins = "AllowAll";
         public IConfiguration Configuration { get; }
         public IWebHostEnvironment Environment { get; }
-        
+
         public Startup(IConfiguration configuration, IWebHostEnvironment environmen)
         {
             Configuration = configuration;
@@ -41,43 +38,42 @@ namespace RemoteNotes
             services.AddScoped<IIdentityService, IdentityService>();
             services.AddHttpContextAccessor();
 
-            //services.AddHealthChecks().AddDbContextCheck<ApplicationDbContext>();
-
             services.AddControllers()
                 .AddFluentValidation(x => x.RegisterValidatorsFromAssemblyContaining<IApplicationDbContext>())
                 .AddNewtonsoftJson();
+
+            services.AddPresenters();
+
+           services.AddCors(options => options
+                .AddPolicy(allowOrigins, builder => builder
+                    .WithOrigins("http://localhost:3000", "http://localhost:3001")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials()));
 
             // Customise default API behaviour
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.SuppressModelStateInvalidFilter = true;
             });
-
-            //services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseCors(allowOrigins);
+
             if (env.IsDevelopment())
-            {
                 app.UseDeveloperExceptionPage();
-            }
             else
-            {
                 app.UseHsts();
-            }
 
             app.UseCustomExceptionHandler();
-            //app.UseHealthChecks("/health");
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            
             app.UseRouting();
-
             app.UseAuthentication();
             app.UseAuthorization();
-           // app.UseIdentityServer();
 
             app.UseEndpoints(endpoints =>
             {

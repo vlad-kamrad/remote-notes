@@ -17,6 +17,7 @@ namespace RN.Application.Common.Interfaces
         Task<bool> AddRole(string userId, string roleName);
         Task<bool> RemoveRole(string userId, string roleName);
         Task<bool> CheckRole(string userId, string roleName);
+        Task GetUserRoles(object userId);
         // TODO: implement user deletion & updating
     }
 }

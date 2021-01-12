@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using RN.Application.UseCases.Notes.Commands.CreateNote;
-using RN.Application.UseCases.Notes.Commands.DeleteNote;
-using RN.Application.UseCases.Notes.Commands.UpdateNote;
-using RN.Application.UseCases.Notes.Queries;
+using RN.Application.Common.Boundaries.Note;
+using RN.WebApi.DTO;
+using RN.WebApi.Presenters.Note;
 using System.Threading.Tasks;
 
 namespace RN.WebApi.Controllers
@@ -14,26 +13,46 @@ namespace RN.WebApi.Controllers
     {
         [Authorize]
         [HttpGet]
-        public async Task<NotesVm> GetNotes() =>
-            await Mediator.Send(new GetNotesQuery());
-
-        [HttpGet("{id}")]
-        public async Task<string> GetNote(int id) => "";
+        public async Task<IActionResult> GetNotes(
+            [FromServices] IGetNotesUseCase useCase,
+            [FromServices] GetNotesPresenter presenter)
+        {
+            await useCase.Execute(new GetNotesInput());
+            return presenter.ViewModel;
+        }
 
         [Authorize]
         [HttpPost]
-        public async Task<int> Create([FromBody] CreateNoteCommand createNoteCommand) =>
-            await Mediator.Send(createNoteCommand);
+        public async Task<IActionResult> Create(
+            [FromServices] ICreateNoteUseCase useCase,
+            [FromServices] CreateNotePresenter presenter,
+            [FromBody] CreateNoteDto _)
+        {
+            await useCase.Execute(new CreateNoteInput(_.Title, _.Text));
+            return presenter.ViewModel;
+        }
 
         [Authorize]
         [HttpPut]
-        public async Task<bool> Update([FromBody] UpdateNoteCommand updateNoteCommand) =>
-            await Mediator.Send(updateNoteCommand);
+        public async Task<IActionResult> Update(
+            [FromServices] IUpdateNoteUseCase useCase,
+            [FromServices] UpdateNotePresenter presenter,
+            [FromBody] UpdateNoteDto input)
+        {
+            await useCase.Execute(new UpdateNoteInput(input.Id, input.Title, input.Text));
+            return presenter.ViewModel;
+        }
 
         [Authorize]
         [HttpDelete]
-        public async Task<bool> Delete([FromBody] DeleteNoteCommand deleteNoteCommand) =>
-            await Mediator.Send(deleteNoteCommand);
+        public async Task<IActionResult> Delete(
+            [FromServices] IDeleteNoteUseCase useCase,
+            [FromServices] DeleteNotePresenter presenter,
+            [FromBody] NoteId input)
+        {
+            await useCase.Execute(new DeleteNoteInput(input.Id));
+            return presenter.ViewModel;
+        }
 
     }
 }

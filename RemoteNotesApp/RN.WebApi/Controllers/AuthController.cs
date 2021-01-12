@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RN.Application.Common.Boundaries.User;
 using RN.Application.UseCases.User.Commands.CreateUser;
 using RN.Application.UseCases.User.Commands.LoginUser;
 using RN.Application.UseCases.User.Commands.UpdateAccessToken;
+using RN.WebApi.DTO;
+using RN.WebApi.Presenters.User;
 using System.Threading.Tasks;
 
 namespace RN.WebApi.Controllers
@@ -11,16 +14,35 @@ namespace RN.WebApi.Controllers
     public class AuthController : ApiController
     {
         [HttpPost("token")]
-        public async Task<string> Login([FromBody] LoginUserCommand loginUserCommand) =>
-            await Mediator.Send(loginUserCommand);
+        public async Task<IActionResult> Login(
+            [FromServices] ILoginUserUseCase useCase,
+            [FromServices] LoginUserPresenter presenter, 
+            [FromBody] LoginParams input)
+        {
+            await useCase.Execute(new LoginUserInput(input.Name, input.Password));
+            return presenter.ViewModel;
+        }
 
         [HttpPost("refresh")]
-        public async Task<string> UpdateAccessToken([FromBody] UpdateAccessTokenCommand updateAccessTokenCommand) =>
-            await Mediator.Send(updateAccessTokenCommand);
+        public async Task<IActionResult> UpdateAccessToken(
+            [FromServices] IUpdateAccessTokenUseCase useCase,
+            [FromServices] UpdateAccessTokenPresenter presenter, 
+            [FromBody] UpdateAccessTokenDto input)
+        {
+            await useCase.Execute(new UpdateAccessTokenInput(input.RefreshToken, input.UserName));
+            return presenter.ViewModel;
+        }
 
         [HttpPost("register")]
-        public async Task<string> Register([FromBody] CreateUserCommand createUserCommand) =>
-            await Mediator.Send(createUserCommand);
+        public async Task<IActionResult> Register(
+            [FromServices] ICreateUserUseCase useCase,
+            [FromServices] CreateUserPresenter presenter,
+            [FromBody] InputUserDto input)
+        {
+            await useCase.Execute(new CreateUserInput(
+                input.Name, input.Surname, input.Email, input.Password));
+            return presenter.ViewModel;
+        }
 
         //[Authorize]
         //[Authorize(Roles = "Admin")]

@@ -154,5 +154,10 @@ namespace RN.Infrastructure.Identity
 
             return user;
         }
+
+        public Task GetUserRoles(object userId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
